@@ -1,0 +1,6 @@
+token.txt
+__pycache__
+*.db
+log.txt
+err.log
+test.py
