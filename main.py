@@ -2,22 +2,22 @@ from telebot.telebot import Bot
 import subprocess
 import os
 
-subprocess.call(['timeout','-k','5','--foreground','5','docker','run','-t','jochnickel/lua','lua5.3','-e','print"Lua is ready."'])
+subprocess.call(['timeout','-k','5','--foreground','5','docker','run','--rm','-t','python','python','-c','print("Python is ready.")'])
 print()
 
 token = open('token.txt','r')
 bot = Bot(token.read())
 token.close()
 
-def execLua(code):
+def execPython(code):
 	try:
-		log = '>>starting lua\n'
-		log = '%s%s'%(log,subprocess.check_output(['timeout','-k','10','--foreground','10','docker','run','-t','jochnickel/lua','lua5.3','-e',code]).decode())
-		return '%s>>lua finished'%log, None
+		log = '>>starting python\n'
+		log = '%s%s'%(log,subprocess.check_output(['timeout','-k','10','--foreground','10','docker','run','--rm','-t','python','python','-c',code]).decode())
+		return '%s>>python finished'%log, None
 	except subprocess.CalledProcessError as e:
 		errname = (124==e.returncode) and "timeout" or (1==e.returncode) and "error" or "returncode(%s)"%e.returncode
-		log = '%s>>lua crashed\n%s'%(log,e.output.decode())
-		return [ log, '`Lua interrupted (%s)`'%errname]
+		log = '%s>>python crashed\n%s'%(log,e.output.decode())
+		return [ log, '`Python interrupted (%s)`'%errname]
 
 
 def onMsg(update):
@@ -36,7 +36,7 @@ def onMsg(update):
 				l = e['length']
 				code = text[o:(o+l)]
 				break
-	output, *errmsg = execLua(code)
+	output, *errmsg = execPython(code)
 	bot.sendMessage(chat,output)
 	if errmsg: bot.sendMessage(chat, *errmsg, markdown = True)
 
