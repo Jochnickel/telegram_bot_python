@@ -2,7 +2,7 @@ from telebot.telebot import Bot
 import subprocess
 import os
 
-subprocess.call(['timeout','-k','5','--foreground','5','docker','run','--rm','-t','python','python','-c','print("Python is ready.")'])
+subprocess.call('docker run --rm -t python timeout -k 5 5 python -c print("Python_is_ready.")'.split(),timeout=20)
 print()
 
 token = open('token.txt','r')
@@ -10,14 +10,21 @@ bot = Bot(token.read())
 token.close()
 
 def execPython(code):
+	log = '>>starting python\n'
+
 	try:
-		log = '>>starting python\n'
-		log = '%s%s'%(log,subprocess.check_output(['timeout','-k','10','--foreground','10','docker','run','--rm','-t','python','python','-c',code]).decode())
-		return '%s>>python finished'%log, None
+		log += subprocess.check_output('docker run --rm -t python timeout -k 10 10 python -c'.split()+[code], timeout = 15, encoding = 'utf-8')
+		log += '>>python finished'
+		errmsg = none
 	except subprocess.CalledProcessError as e:
-		errname = (124==e.returncode) and "timeout" or (1==e.returncode) and "error" or "returncode(%s)"%e.returncode
-		log = '%s>>python crashed\n%s'%(log,e.output.decode())
-		return [ log, '`Python interrupted (%s)`'%errname]
+		errname = (124==e.returncode) and "timeout" or (1==e.returncode) and "error" or "%s"%e
+		errmsg = '`Python interrupted (%s)`'%errname
+		log += e.output
+		log += '>>python crashed\n'
+	except:
+		errmsg = 'Unknown Error'
+		log += '>>python crashed\n'
+	return log, errmsg
 
 
 def onMsg(update):
